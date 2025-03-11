@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, CheckCircle2, CircleDot, GraduationCap, RotateCcw } from 'lucide-react';
 
 type Question = {
@@ -412,6 +412,23 @@ function App() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+
+  // Fisher-Yates shuffle algorithm
+  const shuffleArray = (array: string[]) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+  };
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setShuffledOptions(shuffleArray(selectedCategory.questions[currentQuestionIndex].options));
+    }
+  }, [currentQuestionIndex, selectedCategory]);
 
   const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
@@ -419,6 +436,7 @@ function App() {
     setScore(0);
     setShowResult(false);
     setSelectedAnswer(null);
+    setShuffledOptions(shuffleArray(category.questions[0].options));
   };
 
   const handleAnswerSelect = (answer: string) => {
@@ -445,6 +463,7 @@ function App() {
     setScore(0);
     setShowResult(false);
     setSelectedAnswer(null);
+    setShuffledOptions([]);
   };
 
   if (!selectedCategory) {
@@ -508,7 +527,7 @@ function App() {
           </div>
           <p className="text-lg text-gray-700 mb-6">{currentQuestion.text}</p>
           <div className="space-y-3">
-            {currentQuestion.options.map((option) => (
+            {shuffledOptions.map((option) => (
               <button
                 key={option}
                 onClick={() => handleAnswerSelect(option)}
